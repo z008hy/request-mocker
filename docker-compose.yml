@@ -1,0 +1,27 @@
+version: '3'
+services:
+  rm-backend:
+    container_name: rm-backend-container
+    build: ./rm-backend/rm-mgmt
+    ports:
+      - 3000:3000
+    volumes:
+      - ./rm-backend/rm-mgmt:/home/app/rm-mgmt
+    depends_on:
+      - rm-db
+  rm-db:
+    container_name: rm-db-container
+    image: mysql:${MYSQL_VERSION}
+    ports:
+      - ${RM_DB_PORT}:3306
+    environment:
+      - TZ=Asia/Shanghai
+      - MYSQL_DATABASE=${RM_DB_DATABASE}
+      - MYSQL_USER=${RM_DB_USER}
+      - MYSQL_ROOT_PASSWORD=${RM_DB_ROOT_PASSWORD}
+      - MYSQL_PASSWORD=${RM_DB_PASSWORD}
+    volumes:
+      - ./rm-db/my.cnf:/root/.my.cnf:ro
+      - ./rm-db/conf.d:/etc/mysql/conf.d:ro
+      - ./rm-db/logs:/var/log/mysql:rw
+      - ./rm-db/initdb.d:/docker-entrypoint-initdb.d:ro
