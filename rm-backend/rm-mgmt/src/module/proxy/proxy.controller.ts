@@ -1,5 +1,5 @@
 import { Controller, Get } from '@nestjs/common';
-import { ProxyService } from '../service/proxy';
+import { ProxyService } from './proxy.service';
 
 @Controller('proxy')
 export class ProxyController {

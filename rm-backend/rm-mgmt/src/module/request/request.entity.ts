@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryGeneratedColumn, BeforeUpdate } from 'typeorm';
 
 @Entity("request", { schema: "rm_db" })
 export class Request {
@@ -19,6 +19,11 @@ export class Request {
     default: () => "CURRENT_TIMESTAMP"
   })
   updateTime: Date;
+
+  @BeforeUpdate()
+  updateTimestamp(){
+    this.updateTime = new Date();
+  }
 
   @Column("varchar", { name: "name", length: 60 })
   name: string;

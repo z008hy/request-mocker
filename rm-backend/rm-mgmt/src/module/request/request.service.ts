@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Request } from '../../entity/request.entity';
+import { Request } from './request.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, getRepository } from 'typeorm';
+import { Repository, getRepository, DeleteResult } from 'typeorm';
 import { createRequestDto } from './dto/createRequestDto';
+import { updateRequestDto } from './dto/updateRequestDto';
 import { RequestsRO } from './request.interface';
 
 @Injectable()
@@ -23,6 +24,23 @@ export class RequestService {
         request.url = requestData.url;
 
         return this.requestRepository.save(request);
+    }
+
+    async update(id: string, requestData: updateRequestDto): Promise<Request> {
+      const request = await this.requestRepository.findOne(id);
+      request.name = requestData.name;
+      request.note = requestData.note;
+      request.mocker = requestData.mocker;
+      request.type = requestData.type;
+      request.params = JSON.stringify(requestData.params);
+      request.headers = JSON.stringify(requestData.headers);
+      request.url = requestData.url;
+      return this.requestRepository.save(request);
+    }
+
+    async delete(id: string): Promise<boolean> {
+      const deleteResult = await this.requestRepository.delete(id);
+      return deleteResult.affected !== 0;
     }
 
     async findOne(id: string): Promise<Request> {
@@ -49,18 +67,20 @@ export class RequestService {
   
       qb.orderBy('request.createTime', 'DESC');
   
-      const count = await qb.getCount();
+      const total = await qb.getCount();
   
-      if ('limit' in query) {
-        qb.limit(query.limit);
-      }
-  
-      if ('offset' in query) {
-        qb.offset(query.offset);
+      if ('pageSize' in query && 'size' in query) {
+        qb.skip(query.size * query.current - 1);
+        qb.take(query.size);
       }
   
       const requests = await qb.getMany();
   
-      return { requests, count };
+      return {
+        current: Number(query.current) || 1,
+        pageSize: Number(query.size) || 0,
+        items: requests,
+        total,
+      };
     }
 }
